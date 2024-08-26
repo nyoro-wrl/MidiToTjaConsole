@@ -18,10 +18,6 @@ namespace MidiTjaConsole
 
         public static void Main(string[] args)
         {
-            var unti1 = MyMath.LCM([3, 4]);
-            var unti2 = MyMath.LCM([3]);
-            var unti3 = MyMath.LCM([]);
-
             var path = GetPath(args);
             ReadMidi(path);
         }
