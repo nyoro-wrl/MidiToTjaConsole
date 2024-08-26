@@ -48,10 +48,16 @@ namespace MidiTjaConsole
             var endAbsoluteTime = tempoTrack.Max(x => x.AbsoluteTime);
             var measures = GetMeasure(timeSignatureEvents, endAbsoluteTime);
 
-            foreach (var measure in measures)
+            foreach (var timeSignatureEvent in timeSignatureEvents)
             {
-                var measureTempoEvents = tempoEvents.Where(x => measure.OnTime(x.AbsoluteTime));
-                measure.AddTempo(measureTempoEvents);
+                var measure = measures.Find(x => x.OnTime(timeSignatureEvent.AbsoluteTime));
+                measure?.SetTimeSignature(timeSignatureEvent);
+            }
+
+            foreach (var tempoEvent in tempoEvents)
+            {
+                var measure = measures.Find(x => x.OnTime(tempoEvent.AbsoluteTime));
+                measure?.AddTempo(tempoEvent);
             }
 
             var builder = new StringBuilder();
@@ -75,7 +81,7 @@ namespace MidiTjaConsole
             var nowAbsoluteTime = 0L;
             while (nowAbsoluteTime <= endAbsoluteTime)
             {
-                var timeSignatureEvent = timeSignatureEvents.First(x => x.AbsoluteTime <= nowAbsoluteTime);
+                var timeSignatureEvent = timeSignatureEvents.First(x => x.AbsoluteTime >= nowAbsoluteTime);
                 var timeSignature = timeSignatureEvent.GetTimeSignature();
                 var elapsed = (long)(BeatTick * 4 * timeSignature);
                 var end = nowAbsoluteTime + elapsed;
@@ -83,11 +89,6 @@ namespace MidiTjaConsole
                 nowAbsoluteTime = end;
             }
             return measureTimes;
-        }
-
-        private static Fraction GetTimeSignature(this TimeSignatureEvent timeSignatureEvent)
-        {
-            return new Fraction(timeSignatureEvent.Numerator, (int)Math.Pow(2, timeSignatureEvent.Denominator));
         }
     }
 }

@@ -10,17 +10,24 @@ namespace MidiTjaConsole
         private long EndTime { get; } = end;
         private long Elapsed { get; } = end - start;
 
+        private Fraction? timeSignature = null;
         private readonly SortedDictionary<Fraction, double> bpms = [];
 
         public string ToTJA()
         {
             var builder = new StringBuilder();
+
             var denominators = new List<int>() { 1 };
             denominators.AddRange(bpms.Keys.Select(x => (int)x.Denominator));
             denominators.Distinct();
-
             var denominator = MyMath.LCM(denominators);
             var step = new Fraction(1, denominator);
+
+            if (timeSignature != null)
+            {
+                builder.AppendLine($"#MEASURE {timeSignature:n}/{timeSignature:d}");
+            }
+
             for (Fraction position = 0; position < 1; position += step)
             {
                 if (bpms.TryGetValue(position, out var bpm))
@@ -37,38 +44,6 @@ namespace MidiTjaConsole
             return builder.ToString();
         }
 
-        public void AppendMeasureText(ref StringBuilder builder)
-        {
-            var denominators = new List<int>() { 1 };
-            denominators.AddRange(bpms.Keys.Select(x => (int)x.Denominator));
-            denominators.Distinct();
-
-            var denominator = MyMath.LCM(denominators);
-            var step = new Fraction(1, denominator);
-            for (Fraction position = 0; position < 1; position += step)
-            {
-                if (bpms.TryGetValue(position, out var bpm))
-                {
-                    if (position != 0)
-                    {
-                        builder.AppendLine();
-                    }
-                    builder.AppendLine($"#BPMCHANGE {bpm}");
-                }
-                builder.Append('0');
-            }
-            builder.Append(',');
-            builder.AppendLine();
-        }
-
-        public void AddTempo(IEnumerable<TempoEvent> tempoEvents)
-        {
-            foreach (var tempoEvent in tempoEvents)
-            {
-                AddTempo(tempoEvent);
-            }
-        }
-
         public void AddTempo(TempoEvent tempoEvent)
         {
             var bpm = Math.Round(tempoEvent.Tempo, 3);
@@ -79,6 +54,12 @@ namespace MidiTjaConsole
             }
             var position = new Fraction(tempoElapsed, Elapsed);
             bpms.Add(position, bpm);
+        }
+
+        public void SetTimeSignature(TimeSignatureEvent timeSignatureEvent)
+        {
+            var timeSignature = timeSignatureEvent.GetTimeSignature();
+            this.timeSignature = timeSignature;
         }
 
         /// <summary>
