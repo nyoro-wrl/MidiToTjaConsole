@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "MidiTjaConsole": {
+      "commandName": "Project",
+      "commandLineArgs": "\"C:\\Users\\wrlrst\\Documents\\Studio One\\Songs\\蕊のパーティ\\蕊のパーティ.mid\"\r\n"
+    }
+  }
+}
